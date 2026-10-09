@@ -9,6 +9,7 @@ use App\Http\Controllers\RekapController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AktivitasController;
+use App\Http\Controllers\KelasController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -23,6 +24,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/km', [KmController::class, 'simpan'])->middleware('role:admin,km');
     Route::get('/edit', [EditController::class, 'index'])->name('edit')->middleware('role:admin,guru');
     Route::post('/edit', [EditController::class, 'update'])->middleware('role:admin,guru');
+    Route::post('/kelas', [KelasController::class, 'store'])->name('kelas.store')->middleware('role:admin,guru');
+    Route::put('/kelas/{kelas}', [KelasController::class, 'update'])->name('kelas.update')->middleware('role:admin,guru');
+    Route::delete('/kelas/{kelas}', [KelasController::class, 'destroy'])->name('kelas.destroy')->middleware('role:admin,guru');
     Route::get('/rekap', [RekapController::class, '__invoke'])->name('rekap')->middleware('role:admin');
     Route::get('/siswa', [SiswaController::class, 'index'])->name('siswa')->middleware('role:admin');
     Route::post('/siswa', [SiswaController::class, 'store'])->middleware('role:admin');

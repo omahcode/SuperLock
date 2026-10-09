@@ -52,13 +52,10 @@
 <div class="layout">
 <aside class="sidebar">
     <div class="logo">
-        <div class="logo-foto">
-            @if ($logoAda)
-                <img src="{{ asset('images/logo.png').'?v='.filemtime(public_path('images/logo.png')) }}" alt="Logo">
-            @else
-                P
-            @endif
+        <div class="mb-6 w-20 h-20 rounded-3xl bg-white/15 backdrop-blur flex items-center justify-center ring-1 ring-white/25 shadow-xl" style="margin-bottom:0; width: 80px; height: 80px; border-radius: 24px; background-color: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px rgba(255,255,255,0.25), 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);">
+            <svg style="width: 40px; height: 40px; color: #fff;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75M3.75 18a2.25 2.25 0 0 1 2.25-2.25h12A2.25 2.25 0 0 1 20.25 18v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V18Z"/></svg>
         </div>
+        <div class="logo-nama"><b>NeperSuperLock</b></div>
     </div>
     <nav class="menu">
         @foreach ($menu as $grup => $items)

@@ -8,9 +8,11 @@
 .card-kelas {
     display: flex; flex-direction: column; gap: 6px;
     background: #fff; border: 2px solid var(--garis); border-radius: 12px;
-    padding: 18px 16px; text-decoration: none; color: var(--teks);
+    text-decoration: none; color: var(--teks);
     transition: border-color .12s, box-shadow .12s;
+    position: relative;
 }
+.card-kelas-inner { display: flex; flex-direction: column; gap: 6px; padding: 18px 16px; flex-grow: 1; text-decoration: none; color: inherit; }
 .card-kelas:hover { border-color: var(--biru); box-shadow: 0 2px 8px rgba(21,101,192,.12); }
 .card-kelas .nama { font-weight: 700; font-size: 15px; }
 .card-kelas .jumlah { font-size: 12.5px; color: var(--abu); }
@@ -23,6 +25,9 @@
     padding: 2px 8px; border-radius: 999px; letter-spacing: .5px;
 }
 .card-kelas.aktif .tanda { display: inline-block; }
+.card-kelas-aksi { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; }
+.card-kelas-aksi button { background: none; border: none; cursor: pointer; color: var(--abu); padding: 4px; border-radius: 4px; font-size: 14px; }
+.card-kelas-aksi button:hover { background: #f1f5f9; color: var(--biru); }
 
 .aksi-baris { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; }
 .aksi-kiri { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -77,15 +82,26 @@
 @if (session('pesan'))<div class="msg">{{ session('pesan') }}</div>@endif
 
 <div class="card">
-    <h2 style="margin:0 0 4px">{{ $namaKelas ? 'Pilih Kelas' : 'Pilih Kelas Terlebih Dahulu' }}</h2>
-    <p style="margin:0 0 14px;font-size:12.5px;color:var(--abu)">{{ $namaKelas ? 'Pindah kelas lain untuk melihat daftar siswanya.' : 'Daftar siswa hanya tampil setelah kelas dipilih.' }}</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h2 style="margin:0 0 4px">{{ $namaKelas ? 'Pilih Kelas' : 'Pilih Kelas Terlebih Dahulu' }}</h2>
+            <p style="margin:0;font-size:12.5px;color:var(--abu)">{{ $namaKelas ? 'Pindah kelas lain untuk melihat daftar siswanya.' : 'Daftar siswa hanya tampil setelah kelas dipilih.' }}</p>
+        </div>
+        <button type="button" class="btn" onclick="tambahKelas()">+ Tambah Kelas</button>
+    </div>
     <div class="grid-kelas">
         @forelse ($kelasList as $k)
-        <a href="{{ route('edit', ['kelas' => $k->id]) }}" class="card-kelas {{ $k->id === $kelasId ? 'aktif' : '' }}">
-            <span class="tanda">✓ TERPILIH</span>
-            <span class="nama">{{ $k->nama }}</span>
-            <span class="jumlah">{{ $siswaCount[$k->id] ?? 0 }} Siswa</span>
-        </a>
+        <div class="card-kelas {{ $k->id === $kelasId ? 'aktif' : '' }}">
+            <a href="{{ route('edit', ['kelas' => $k->id]) }}" class="card-kelas-inner">
+                <span class="tanda">✓ TERPILIH</span>
+                <span class="nama">{{ $k->nama }}</span>
+                <span class="jumlah">{{ $siswaCount[$k->id] ?? 0 }} Siswa</span>
+            </a>
+            <div class="card-kelas-aksi">
+                <button type="button" onclick="editKelas({{ $k->id }}, '{{ addslashes($k->nama) }}')" title="Edit Kelas">✏️</button>
+                <button type="button" onclick="hapusKelas({{ $k->id }})" title="Hapus Kelas">🗑️</button>
+            </div>
+        </div>
         @empty
         <span style="color:var(--abu);font-size:13px">Belum ada kelas.</span>
         @endforelse
@@ -161,7 +177,66 @@
     </div>
 </div>
 
+{{-- popup form kelas --}}
+<div class="modal-overlay" id="modal-kelas">
+    <div class="modal">
+        <h3 id="md-kelas-judul">Tambah Kelas</h3>
+        <form id="frm-kelas" method="POST">
+            @csrf
+            <input type="hidden" name="_method" id="md-kelas-method" value="POST">
+            <label>Nama Kelas
+                <input type="text" name="nama" id="md-kelas-nama" required maxlength="50" placeholder="Contoh: XII RPL 1">
+            </label>
+            <div class="modal-btn">
+                <button type="button" class="btn btn-batal" onclick="tutupModalKelas()">Batal</button>
+                <button type="submit" class="btn">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<form id="frm-hapus-kelas" method="POST" style="display:none;">
+    @csrf
+    @method('DELETE')
+</form>
+
 <script>
+var modalKelas = document.getElementById('modal-kelas');
+var frmKelas = document.getElementById('frm-kelas');
+var mdKelasJudul = document.getElementById('md-kelas-judul');
+var mdKelasNama = document.getElementById('md-kelas-nama');
+var mdKelasMethod = document.getElementById('md-kelas-method');
+var frmHapusKelas = document.getElementById('frm-hapus-kelas');
+
+function tambahKelas() {
+    mdKelasJudul.innerText = 'Tambah Kelas';
+    frmKelas.action = '{{ route("kelas.store") }}';
+    mdKelasMethod.value = 'POST';
+    mdKelasNama.value = '';
+    modalKelas.classList.add('buka');
+}
+
+function editKelas(id, nama) {
+    mdKelasJudul.innerText = 'Edit Kelas';
+    frmKelas.action = '/kelas/' + id;
+    mdKelasMethod.value = 'PUT';
+    mdKelasNama.value = nama;
+    modalKelas.classList.add('buka');
+}
+
+function hapusKelas(id) {
+    if (confirm('Yakin ingin menghapus kelas ini?')) {
+        var baseUrl = '/kelas/' + id;
+        var query = '{{ request()->query("kelas") }}';
+        frmHapusKelas.action = query ? baseUrl + '?kelas=' + query : baseUrl;
+        frmHapusKelas.submit();
+    }
+}
+
+function tutupModalKelas() {
+    modalKelas.classList.remove('buka');
+}
+
 (function () {
     var modal = document.getElementById('modal');
     var inAksi = document.getElementById('in-aksi');

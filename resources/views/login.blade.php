@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Login — Neper SuperLock')
+@section('title', 'Login - Neper SuperLock')
 
 @push('head')
 <script src="https://cdn.tailwindcss.com"></script>
@@ -65,7 +65,7 @@
         </form>
       </div>
 
-      <p class="mt-6 text-center text-xs text-slate-400">© 2026 NEPER · SuperLock</p>
+      <p class="mt-6 text-center text-xs text-slate-400">&copy; 2026 NEPER &bull; SuperLock</p>
     </div>
   </div>
 
@@ -87,7 +87,7 @@
       <div class="mb-6 w-20 h-20 rounded-3xl bg-white/15 backdrop-blur flex items-center justify-center ring-1 ring-white/25 shadow-xl">
         <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75M3.75 18a2.25 2.25 0 0 1 2.25-2.25h12A2.25 2.25 0 0 1 20.25 18v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V18Z"/></svg>
       </div>
-      <h2 class="text-4xl font-extrabold tracking-tight drop-shadow-sm">NEPER · SuperLock</h2>
+      <h2 class="text-4xl font-extrabold tracking-tight drop-shadow-sm">NEPER &bull; SuperLock</h2>
       <p class="mt-4 max-w-md text-teal-50/90 leading-relaxed">Penitipan HP terpadu untuk sekolah. Aman, terpantau, dan tertib semua di satu tempat.</p>
       <div class="mt-10 grid grid-cols-3 gap-8 text-center">
         <div><p class="text-3xl font-extrabold">24/7</p><p class="mt-1 text-xs uppercase tracking-widest text-teal-100/70">Terpantau</p></div>
