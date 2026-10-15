@@ -49,6 +49,12 @@ class ApiController extends Controller
             if (! $km->kelas_id) {
                 return $this->out(['ok' => false, 'error' => 'KM tidak terikat kelas'], 400);
             }
+
+            // Otorisasi: KM hanya boleh mengambil untuk kelasnya sendiri
+            if ($request->user()->role === 'km' && $request->user()->id !== $km->id) {
+                return $this->out(['ok' => false, 'error' => 'Akses ditolak: Anda hanya dapat mengambil untuk kelas Anda sendiri'], 403);
+            }
+
             $count = Penitipan::join('siswa', 'siswa.id', '=', 'penitipan.siswa_id')
                 ->where('siswa.kelas_id', $km->kelas_id)
                 ->where('penitipan.tanggal', $tanggal)
@@ -56,6 +62,8 @@ class ApiController extends Controller
                 ->whereNull('penitipan.jam_ambil')
                 ->update(['penitipan.jam_ambil' => now()->format('H:i:s')]);
             $kelasNama = Kelas::find($km->kelas_id)?->nama;
+
+            \App\Models\Aktivitas::catat('Ambil Semua HP', "Menandai HP $count siswa kelas $kelasNama sudah diambil (KM: {$km->nama}).");
 
             return $this->out([
                 'ok' => true,
@@ -78,8 +86,15 @@ class ApiController extends Controller
 
         $info = ['nama' => $siswa->nama, 'kelas' => $siswa->kelas];
 
+        // Otorisasi perubahan status: Hanya Admin atau Guru
+        if ($request->isMethod('post') && ($request->filled('pinjam') || $request->filled('kembali') || $request->filled('ambil'))) {
+            if ($request->user()->role === 'km') {
+                return $this->out(['ok' => false, 'error' => 'Akses ditolak: Hanya Guru atau Admin yang berhak memproses status HP siswa'], 403);
+            }
+        }
+
         if ($request->isMethod('post') && $request->filled('pinjam')) {
-            $guru = trim((string) $request->query('guru', ''));
+            $guru = trim((string) $request->query('guru', '')) ?: $request->user()->nama;
             if ($guru === '') {
                 return $this->out(['ok' => false, 'error' => 'Nama guru piket wajib diisi'], 400);
             }
@@ -89,11 +104,13 @@ class ApiController extends Controller
             Penitipan::where('siswa_id', $siswa->id)->where('tanggal', $tanggal)
                 ->update(['status' => 'pinjam', 'jam_pinjam' => now()->format('H:i:s'), 'guru_nama' => $guru]);
 
+            \App\Models\Aktivitas::catat('Izin Pinjam HP', "Izin pinjam HP siswa {$siswa->nama} (NIS: {$siswa->nis}). Guru: $guru");
+
             return $this->out(['ok' => true, 'pesan' => 'Izin ambil HP tercatat. Status: SEDANG DIPINJAM', 'siswa' => $info, 'jam_pinjam' => now()->format('H:i'), 'guru' => $guru]);
         }
 
         if ($request->isMethod('post') && $request->filled('kembali')) {
-            $guru = trim((string) $request->query('guru', ''));
+            $guru = trim((string) $request->query('guru', '')) ?: $request->user()->nama;
             if ($guru === '') {
                 return $this->out(['ok' => false, 'error' => 'Nama guru piket wajib diisi'], 400);
             }
@@ -102,6 +119,8 @@ class ApiController extends Controller
             }
             Penitipan::where('siswa_id', $siswa->id)->where('tanggal', $tanggal)
                 ->update(['status' => 'kumpul', 'jam_kembali' => now()->format('H:i:s'), 'guru_nama' => $guru]);
+
+            \App\Models\Aktivitas::catat('Kembalikan HP', "Pengembalian HP siswa {$siswa->nama} (NIS: {$siswa->nis}). Guru: $guru");
 
             return $this->out(['ok' => true, 'pesan' => 'HP dikembalikan. Status: SUDAH MENGUMPULKAN', 'siswa' => $info, 'jam_kembali' => now()->format('H:i'), 'guru' => $guru]);
         }
@@ -115,6 +134,8 @@ class ApiController extends Controller
             }
             Penitipan::where('siswa_id', $siswa->id)->where('tanggal', $tanggal)
                 ->update(['jam_ambil' => now()->format('H:i:s')]);
+
+            \App\Models\Aktivitas::catat('Ambil HP', "HP siswa {$siswa->nama} (NIS: {$siswa->nis}) diserahkan/diambil.");
 
             return $this->out(['ok' => true, 'pesan' => 'HP diserahkan. Status: SUDAH DIAMBIL', 'siswa' => $info, 'jam_kumpul' => $siswa->jam_kumpul, 'jam_ambil' => now()->format('H:i')]);
         }

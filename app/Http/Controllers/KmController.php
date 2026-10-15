@@ -55,9 +55,21 @@ class KmController extends Controller
         $jmlKumpul = 0;
         $jmlTidak = 0;
 
+        if (! $kelasId) {
+            return back()->with('pesan', 'Gagal: Kelas tidak valid.');
+        }
+
+        $validSiswaIds = Siswa::where('kelas_id', $kelasId)->pluck('id')->all();
+        $validSiswaSet = array_flip($validSiswaIds);
+
         foreach ($data['status'] as $siswaId => $st) {
+            $siswaId = (int) $siswaId;
+            if (! isset($validSiswaSet[$siswaId])) {
+                continue; // Cegah manipulasi siswa di luar kelas
+            }
+
             Penitipan::updateOrCreate(
-                ['siswa_id' => (int) $siswaId, 'tanggal' => $tanggal],
+                ['siswa_id' => $siswaId, 'tanggal' => $tanggal],
                 [
                     'status' => $st,
                     'jam_kumpul' => $st === 'kumpul' ? now()->format('H:i:s') : null,

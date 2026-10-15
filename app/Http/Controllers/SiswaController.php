@@ -109,7 +109,13 @@ class SiswaController extends Controller
 
         $rows = Siswa::where('kelas_id', $data['kelas_id'])->orderBy('nama')->get(['nis', 'nama']);
         $csv = "No;NIS;Nama\n";
-        foreach ($rows as $i => $r) $csv .= ($i + 1) . ';' . $r->nis . ';' . $r->nama . "\n";
+        foreach ($rows as $i => $r) {
+            $nama = $r->nama;
+            if (in_array(substr($nama, 0, 1), ['=', '+', '-', '@', "\t", "\r"], true)) {
+                $nama = "'" . $nama;
+            }
+            $csv .= ($i + 1) . ';' . $r->nis . ';' . $nama . "\n";
+        }
 
         return response($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
