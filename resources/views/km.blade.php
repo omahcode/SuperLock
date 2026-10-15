@@ -24,14 +24,21 @@
 <form method="post" action="{{ route('km') }}" class="card">
     @csrf
     <input type="hidden" name="kelas" value="{{ $kelasId }}">
-    <label>Ketua Kelas:
-        <select name="km_id" onchange="this.form.elements['km_nama'].value = this.options[this.selectedIndex].dataset.nama">
-            @foreach ($kmList as $km)
-                <option value="{{ $km->id }}" data-nama="{{ $km->nama }}" @selected($kmDefault && $km->id === $kmDefault->id)>{{ $km->nama }}</option>
-            @endforeach
-        </select>
-    </label>
-    <input type="hidden" name="km_nama" value="{{ $kmDefault->nama ?? $kmList->first()->nama }}">
+    @if (auth()->user()->role === 'km')
+        <div style="margin-bottom:10px;font-size:14px">
+            Ketua Kelas: <b>{{ auth()->user()->nama }}</b>
+        </div>
+        <input type="hidden" name="km_nama" value="{{ auth()->user()->nama }}">
+    @else
+        <label>Ketua Kelas:
+            <select name="km_id" onchange="this.form.elements['km_nama'].value = this.options[this.selectedIndex].dataset.nama">
+                @foreach ($kmList as $km)
+                    <option value="{{ $km->id }}" data-nama="{{ $km->nama }}" @selected($kmDefault && $km->id === $kmDefault->id)>{{ $km->nama }}</option>
+                @endforeach
+            </select>
+        </label>
+        <input type="hidden" name="km_nama" value="{{ $kmDefault->nama ?? $kmList->first()?->nama }}">
+    @endif
     <p style="margin-top:10px;font-size:13px;color:#616161">
         Pilih <b>Sudah/Tidak Mengumpulkan</b> per siswa.
     </p>

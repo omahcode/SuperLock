@@ -39,14 +39,19 @@ class KmController extends Controller
         $tanggal = now()->toDateString();
         $kelasId = $user->role === 'km' ? (int) $user->kelas_id : (int) $request->input('kelas', 0);
 
-        $data = $request->validate([
+        $rules = [
             'kelas' => ['nullable', 'integer'],
-            'km_nama' => ['required', 'string', 'max:100'],
             'status' => ['required', 'array'],
             'status.*' => ['in:kumpul,tidak'],
-        ]);
+        ];
 
-        $kmNama = trim($data['km_nama']);
+        if ($user->role !== 'km') {
+            $rules['km_nama'] = ['required', 'string', 'max:100'];
+        }
+
+        $data = $request->validate($rules);
+
+        $kmNama = $user->role === 'km' ? $user->nama : trim($data['km_nama']);
         $jmlKumpul = 0;
         $jmlTidak = 0;
 
