@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users')->middleware('role:admin');
     Route::post('/users', [UserController::class, 'store'])->middleware('role:admin');
     Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset')->middleware('role:admin');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('role:admin');
     Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas')->middleware('role:admin');
     Route::match(['get', 'post'], '/api', [ApiController::class, 'index'])->name('api');
 });

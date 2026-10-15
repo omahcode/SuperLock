@@ -20,6 +20,10 @@
 }
 .badge-role { padding: 4px 12px; border-radius: 999px; font-size: 11.5px; font-weight: 600; white-space: nowrap; text-transform: uppercase; letter-spacing: .4px; }
 .btn-kecil { padding: 7px 14px; font-size: 12.5px; border-radius: 8px; }
+.btn-merah { background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; }
+.btn-merah:hover { background: #fecaca; }
+.msg-error { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.aksi-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .frm-reset { display: none; align-items: center; gap: 8px; }
 .frm-reset.buka { display: flex; }
 .frm-reset input { padding: 7px 12px; font-size: 13px; }
@@ -43,6 +47,7 @@
 </div>
 
 @if (session('pesan'))<div class="msg">{{ session('pesan') }}</div>@endif
+@if (session('error'))<div class="msg msg-error">{{ session('error') }}</div>@endif
 
 <div class="user-grid">
 
@@ -78,6 +83,12 @@
   <script>
     var frm = document.querySelector('.form-user');
     if (frm) frm.kelas_id.disabled = frm.role.value !== 'km';
+
+    function toggleReset(btn) {
+      var f = btn.closest('td').querySelector('.frm-reset');
+      f.classList.toggle('buka');
+      btn.textContent = f.classList.contains('buka') ? 'Batal' : 'Reset Password';
+    }
   </script>
 
   {{-- ===== DAFTAR USER ===== --}}
@@ -100,7 +111,18 @@
         <td><span class="badge-role" style="background:{{ $bg }};color:{{ $fg }};border:1px solid {{ $fg }}33">{{ $u->role }}</span></td>
         <td style="font-size:12.5px;color:var(--abu)">{{ $u->kelas?->nama ?? '—' }}</td>
         <td>
-          <button type="button" class="btn-kecil" onclick="var f=this.nextElementSibling;f.classList.toggle('buka');this.textContent=f.classList.contains('buka')?'Batal':'Reset Password'">Reset Password</button>
+          <div class="aksi-group">
+            <button type="button" class="btn-kecil" onclick="toggleReset(this)">Reset Password</button>
+            @if ($u->id !== auth()->id())
+              <form method="post" action="{{ route('users.destroy', $u) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user {{ $u->nama }} ({{ $u->username }})?')" style="display:inline">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-kecil btn-merah">Hapus</button>
+              </form>
+            @else
+              <span style="font-size:11.5px;color:var(--abu);font-style:italic;padding:4px 6px">(Akun Anda)</span>
+            @endif
+          </div>
           <form method="post" action="{{ route('users.reset', $u) }}" class="frm-reset" style="margin-top:8px">
             @csrf
             <input type="password" name="password" required minlength="6" placeholder="password baru">

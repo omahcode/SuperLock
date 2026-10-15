@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Aktivitas;
 use App\Models\Kelas;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -31,6 +32,8 @@ class UserController extends Controller
         $data['password'] = Hash::make($data['password']);
         User::create($data);
 
+        Aktivitas::catat('Tambah User', "Menambahkan user baru: {$data['username']} ({$data['nama']}, role: {$data['role']}).");
+
         return redirect()->route('users')->with('pesan', "User {$data['username']} berhasil dibuat.");
     }
 
@@ -42,6 +45,25 @@ class UserController extends Controller
 
         $user->update(['password' => Hash::make($data['password'])]);
 
+        Aktivitas::catat('Reset Password', "Mereset password user {$user->username}.");
+
         return redirect()->route('users')->with('pesan', "Password user {$user->username} berhasil direset.");
+    }
+
+    public function destroy(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return redirect()->route('users')->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+        }
+
+        $nama = $user->nama;
+        $username = $user->username;
+        $role = $user->role;
+
+        $user->delete();
+
+        Aktivitas::catat('Hapus User', "Menghapus user {$username} ({$nama}, role: {$role}).");
+
+        return redirect()->route('users')->with('pesan', "User {$username} berhasil dihapus.");
     }
 }
