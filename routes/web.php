@@ -19,7 +19,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', [MonitoringController::class, '__invoke'])->name('monitoring')->middleware('role:admin,guru');
+    Route::get('/', [MonitoringController::class, '__invoke'])->name('monitoring');
     Route::get('/km', [KmController::class, 'index'])->name('km')->middleware('role:admin,km');
     Route::post('/km', [KmController::class, 'simpan'])->middleware('role:admin,km');
     Route::get('/edit', [EditController::class, 'index'])->name('edit')->middleware('role:admin,guru');

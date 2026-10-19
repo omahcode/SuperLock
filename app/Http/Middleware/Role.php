@@ -12,7 +12,20 @@ class Role
     {
         $user = $request->user();
         abort_unless($user, 401, 'Login diperlukan');
-        abort_if($roles !== [] && ! in_array($user->role, $roles, true), 403, 'Akses ditolak untuk peran Anda.');
+
+        if ($roles !== [] && ! in_array($user->role, $roles, true)) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                abort(403, 'Akses ditolak untuk peran Anda.');
+            }
+
+            $defaultRoute = $user->role === 'km' ? 'km' : 'monitoring';
+
+            if (! $request->routeIs($defaultRoute)) {
+                return redirect()->route($defaultRoute)->with('pesan', 'Akses ditolak untuk peran Anda pada halaman tersebut.');
+            }
+
+            abort(403, 'Akses ditolak untuk peran Anda.');
+        }
 
         return $next($request);
     }

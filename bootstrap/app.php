@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias(['role' => \App\Http\Middleware\Role::class]);
         $middleware->redirectGuestsTo(fn () => route('login'));
+        $middleware->redirectUsersTo(function () {
+            $user = auth()->user();
+            return $user?->role === 'km' ? route('km') : route('monitoring');
+        });
         $middleware->validateCsrfTokens(except: ['api']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

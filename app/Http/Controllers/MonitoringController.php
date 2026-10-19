@@ -13,6 +13,10 @@ class MonitoringController extends Controller
 {
     public function __invoke(Request $request)
     {
+        if ($request->user()?->role === 'km') {
+            return redirect()->route('km');
+        }
+
         $tanggal = $request->query('tanggal', now()->toDateString());
         $kelasId = (int) $request->query('kelas', 0);
         $hari = (int) $request->query('hari', 7);
